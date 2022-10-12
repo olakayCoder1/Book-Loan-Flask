@@ -7,31 +7,10 @@ import jwt
 import string
 import random
 
+
 @app.route('/')
 def home():
-    
     data = []
-    books = Loan.query.all()
-    user = User.query.get_or_404(1)
-    user.is_admin = True
-    user.sign_two_factor_authentication = True
-    try:
-        db.session.add(user)
-        db.session.commit()
-    except:
-        db.session.rollback()
-    for val in books:
-        new_val = {
-            'id' : val.id,
-            'book_id' : {
-               'id': val.loan_book.id,
-                'name': val.loan_book.name,
-            },
-            'due_date' : val.due_date,
-            'created_at' : val.created_at,
-            'has_returned' : val.has_returned,
-        }
-        data.append(new_val)
     return jsonify( data , 200)
 
 
@@ -46,8 +25,7 @@ def sign_up():
         
     new_user  = User(email=email, password=password)
     try:
-        db.session.add(new_user)
-        db.session.commit()
+        new_user.save()
     except:
         db.session.rollback()
 
@@ -127,8 +105,7 @@ def password_change(current_user):
             if current_user.check_password( old_password) :
                 current_user.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
                 try:
-                    db.session.add(current_user)
-                    db.session.commit()
+                    current_user.save()
                     return jsonify({'message': 'Password updated successfully'}) , 200
                 except:
                     db.session.rollback()
@@ -145,7 +122,8 @@ def password_reset_email():
     if user:
         ## SEND EMAIL TO USER
         token = TokenService.create_password_reset_token(user.id)
-        MailService.send_reset_mail(token)
+
+        MailService.send_reset_mail(user.email , token)
     return jsonify({'message':'Instruction to reset your password has been sent to the provided email if existed on our server'}) , 200
 
 
@@ -160,10 +138,10 @@ def password_reset_confirm(token):
             user_id = payload.get('id')
             if TokenService.validate_password_token(token, user_id ) :
                 user = User.query.get_or_404(user_id)
+
                 user.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
                 try:
-                    db.session.add(user)
-                    db.session.commit()
+                    user.update(password_hash=bcrypt.generate_password_hash(password).decode('utf-8'))
                     return jsonify({'message': 'Password updated successfully'}) , 200
                 except:
                     db.session.rollback()

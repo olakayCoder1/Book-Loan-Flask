@@ -113,7 +113,7 @@ class TokenService:
         token=encoded_jwt.decode('UTF-8')
         return token
 
-    def validate_token(self, token : str , user_id : int ):
+    def validate_token(token : str , user_id : int ):
         payload = jwt.decode(token, "secret", algorithms=["HS256"])
         if payload.get('id') != user_id :
             return False
@@ -125,7 +125,7 @@ class TokenService:
 
 
 
-    def create_password_reset_token(self,id: int)-> str :
+    def create_password_reset_token(id: int)-> str :
         payload = { 'id' : id ,  'expired_at' : datetime.utcnow() + timedelta(days=1)  , 'type': 'password-reset'  }
         try:
             encoded_jwt = jwt.encode( payload , "secret", algorithm="HS256" , json_encoder=DateTimeEncoder  )
@@ -136,7 +136,7 @@ class TokenService:
         token = encoded_jwt.decode('UTF-8')
         return token
 
-    def validate_password_token(self, token:str , user_id:int):
+    def validate_password_token(token:str , user_id:int):
         payload = jwt.decode(token, "secret", algorithms=["HS256"])
         if payload.get('id') != user_id :
             return False

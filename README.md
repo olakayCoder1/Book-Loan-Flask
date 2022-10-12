@@ -1,5 +1,16 @@
 # Book-Loan-Flask
 This project is a book reading loan website ( API ). Built with Flask .
+## Project functionality
+  - Registration
+  - Login
+  - Two factor authentication
+  - Password reset
+  - Book list
+  - Loan history
+  
+ Admin 
+  - coming soon
+  
 
 ## Testing the project 
 

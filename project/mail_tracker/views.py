@@ -7,6 +7,7 @@ import jwt
 import string
 import random
 import asyncio
+import os
 
 @app.route('/')
 def home():
@@ -67,8 +68,7 @@ def sign_two_factor_authentication():
     code = data.get('code')
     token = data.get('token')
     try:
-        payload = jwt.decode(token, "secret", algorithms=["HS256"])
-
+        payload = jwt.decode(token, os.getenv('JWT_SECRET') , algorithms=[os.getenv('JWT_ALGO')])
     except:
         return jsonify( {  'message' : 'Authentication code error'} , 401)
     if int(payload['code']) == int(code ) :
@@ -136,7 +136,7 @@ def password_reset_confirm(token):
     confirm_password = data.get('confirm_password', None)
     if password and confirm_password :
         if password == confirm_password :
-            payload = jwt.decode(token, "secret", algorithms=["HS256"])
+            payload = jwt.decode(token, os.getenv('JWT_SECRET'), algorithms=[os.getenv('JWT_ALGO')])
             user_id = payload.get('id')
             if TokenService.validate_password_token(token, user_id ) :
                 user = User.query.get_or_404(user_id)

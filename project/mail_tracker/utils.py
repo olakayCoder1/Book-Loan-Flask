@@ -29,7 +29,7 @@ def authorization_required(f):
             return jsonify({  'message' : "Token expired! Login " }) , 401
 
         try:
-            data = jwt.decode(token , 'secret' , algorithms=['HS256'])
+            data = jwt.decode(token , os.getenv('JWT_SECRET')  , algorithms=[os.getenv('JWT_ALGO')])
             current_user = User.query.filter_by(id=data['id']).first()
 
             has_token_expired = TokenService.validate_token(str(token) , current_user.id )
@@ -61,7 +61,7 @@ def admin_required(f):
             return jsonify({  'message' : "Token expired! Login " }) , 401
 
         try:
-            data = jwt.decode(token , 'secret' , algorithms=['HS256'])
+            data = jwt.decode(token , os.getenv('JWT_SECRET') , algorithms=[os.getenv('JWT_ALGO')])
             current_user = User.query.filter_by(id=data['id']).first()
             has_token_expired = TokenService.validate_token(str(token) , current_user.id )
             if has_token_expired:
@@ -95,7 +95,7 @@ class TokenService:
         payload = { 'id' : id ,  'expired_at' : datetime.utcnow() + timedelta(days=30) 
             }
         try:
-            encoded_jwt = jwt.encode( payload , "secret", algorithm="HS256" , json_encoder=DateTimeEncoder  )
+            encoded_jwt = jwt.encode( payload , "secret", algorithm=os.getenv('JWT_ALGO') , json_encoder=DateTimeEncoder  )
       
         except Exception as e :
                 return None
@@ -106,7 +106,7 @@ class TokenService:
         payload = { 'id' : id ,  'expired_at' : datetime.utcnow() + timedelta(days=30)  , 'code' : code
             }
         try:
-            encoded_jwt = jwt.encode( payload , "secret", algorithm="HS256" , json_encoder=DateTimeEncoder  )
+            encoded_jwt = jwt.encode( payload , os.getenv('JWT_SECRET'), algorithm=os.getenv('JWT_ALGO') , json_encoder=DateTimeEncoder  )
         
         except Exception as e :
                 return None
@@ -114,7 +114,7 @@ class TokenService:
         return token
 
     def validate_token(token : str , user_id : int ):
-        payload = jwt.decode(token, "secret", algorithms=["HS256"])
+        payload = jwt.decode(token, os.getenv('JWT_SECRET'), algorithms=[os.getenv('JWT_ALGO')])
         if payload.get('id') != user_id :
             return False
         if datetime.now() <  payload.get('expired_at') :
@@ -128,7 +128,7 @@ class TokenService:
     def create_password_reset_token(id: int)-> str :
         payload = { 'id' : id ,  'expired_at' : datetime.utcnow() + timedelta(days=1)  , 'type': 'password-reset'  }
         try:
-            encoded_jwt = jwt.encode( payload , "secret", algorithm="HS256" , json_encoder=DateTimeEncoder  )
+            encoded_jwt = jwt.encode( payload , os.getenv('JWT_SECRET'), algorithm=os.getenv('JWT_ALGO') , json_encoder=DateTimeEncoder  )
         
         except Exception as e :
                 return None
@@ -137,7 +137,7 @@ class TokenService:
         return token
 
     def validate_password_token(token:str , user_id:int):
-        payload = jwt.decode(token, "secret", algorithms=["HS256"])
+        payload = jwt.decode(token, os.getenv('JWT_SECRET'), algorithms=[os.getenv('JWT_ALGO')])
         if payload.get('id') != user_id :
             return False
         if datetime.now() <  payload.get('expired_at') :

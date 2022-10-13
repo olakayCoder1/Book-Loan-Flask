@@ -6,7 +6,7 @@ from mail_tracker.utils import TokenService , authorization_required , MailServi
 import jwt
 import string
 import random
-
+import asyncio
 
 @app.route('/')
 def home():
@@ -33,14 +33,15 @@ def sign_up():
 
 
 @app.route('/login' , methods=['GET', 'POST'])
-def sign_in():
+async def sign_in():
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
     attempt_user = User.query.filter_by(email=email).first()
     if attempt_user.sign_two_factor_authentication :
         code = ''.join( random.choices(string.digits , k=5))
-        MailService.send_sign_two_factor_authentication_mail(attempt_user.email , code)
+        send_email = asyncio.create_task( MailService.send_sign_two_factor_authentication_mail(attempt_user.email , code))
+        
         token = TokenService.create_2fa_token(attempt_user.id , int(code))
         return jsonify({  'message' : 'Authentication code has been sent to the user email', 'token': token  }) , 200
 
@@ -116,13 +117,13 @@ def password_change(current_user):
 
 
 @app.route('/password-reset', methods=['POST'])
-def password_reset_email():
+async def password_reset_email():
     data = request.get_json()
     user = User.query.filter_by(email=data['email']).first()
     if user:
         ## SEND EMAIL TO USER
-        token = TokenService.create_password_reset_token(user.id)
-
+        send_email = asyncio.create_task(TokenService.create_password_reset_token(user.id))
+        token = await send_email
         MailService.send_reset_mail(user.email , token)
     return jsonify({'message':'Instruction to reset your password has been sent to the provided email if existed on our server'}) , 200
 

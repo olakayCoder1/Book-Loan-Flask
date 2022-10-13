@@ -153,7 +153,7 @@ class TokenService:
 class MailService:
     
 
-    def send_reset_mail(receiver , token ):
+    async def send_reset_mail(receiver , token ):
         sender_email = os.getenv('EMAIL_SENDER') 
         receiver_email = receiver
         password = os.getenv('EMAIL_PASSWORD') 
@@ -174,12 +174,12 @@ class MailService:
         try:
             with smtplib.SMTP_SSL("smtp.gmail.com", port=465, context=context) as connection:
                 connection.login(sender_email, password)
-                connection.sendmail(sender_email, receiver_email, em.as_string())
+                await connection.sendmail(sender_email, receiver_email, em.as_string())
         except:
             pass
         return True
 
-    def send_sign_two_factor_authentication_mail(receiver , code  ):
+    async def send_sign_two_factor_authentication_mail(receiver , code  ):
         sender_email = os.getenv('EMAIL_SENDER') 
         receiver_email = receiver
         password = os.getenv('EMAIL_PASSWORD') 
@@ -200,7 +200,7 @@ class MailService:
         try:
             with smtplib.SMTP_SSL("smtp.gmail.com", port=465, context=context) as connection:
                 connection.login(sender_email, password)
-                connection.sendmail(sender_email, receiver_email, em.as_string())
+                await connection.sendmail(sender_email, receiver_email, em.as_string())
         except:
             pass
         return True

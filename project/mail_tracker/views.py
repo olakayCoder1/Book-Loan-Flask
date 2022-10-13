@@ -39,14 +39,15 @@ async def sign_in():
     email = data.get('email')
     password = data.get('password')
     attempt_user = User.query.filter_by(email=email).first()
-    if attempt_user.sign_two_factor_authentication :
-        code = ''.join( random.choices(string.digits , k=5))
-        send_email = asyncio.create_task( MailService.send_sign_two_factor_authentication_mail(attempt_user.email , code))
-        
-        token = TokenService.create_2fa_token(attempt_user.id , int(code))
-        return jsonify({  'message' : 'Authentication code has been sent to the user email', 'token': token  }) , 200
+
 
     if attempt_user and attempt_user.check_password(password):
+        if attempt_user.sign_two_factor_authentication :
+            code = ''.join( random.choices(string.digits , k=5))
+            send_email = asyncio.create_task( MailService.send_sign_two_factor_authentication_mail(attempt_user.email , code))
+            
+            token = TokenService.create_2fa_token(attempt_user.id , int(code))
+            return jsonify({  'message' : 'Authentication code has been sent to the user email', 'token': token  }) , 200
         id = attempt_user.id
         user_token = TokenService.create_auth_token(id)
 

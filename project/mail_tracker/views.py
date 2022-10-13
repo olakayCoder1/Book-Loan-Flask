@@ -122,10 +122,11 @@ async def password_reset_email():
     user = User.query.filter_by(email=data['email']).first()
     if user:
         ## SEND EMAIL TO USER
-        send_email = asyncio.create_task(TokenService.create_password_reset_token(user.id))
-        token = await send_email
-        MailService.send_reset_mail(user.email , token)
-    return jsonify({'message':'Instruction to reset your password has been sent to the provided email if existed on our server'}) , 200
+        token = TokenService.create_password_reset_token(user.id)
+        send_email = asyncio.create_task(MailService.send_reset_mail(user.email , token))
+    return jsonify( { 
+        'message':'Instruction to reset your password has been sent to the provided email if existed on our server'
+        }) , 200
 
 
 @app.route('/password-reset/<token>/confirm', methods=['POST'])
